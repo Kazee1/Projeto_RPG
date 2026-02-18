@@ -1,0 +1,304 @@
+/* profile.module.css */
+
+/* --- MENU DROPDOWN (HEADER) --- */
+.dropdownMenu {
+  position: absolute;
+  top: 70px; /* Logo abaixo do header */
+  right: 32px;
+  width: 260px;
+  background: var(--bg-overlay);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  z-index: 100;
+  animation: slideDown 0.2s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+}
+
+.menuItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.menuItem.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--neon-red);
+}
+
+.menuDivider {
+  height: 1px;
+  background: var(--glass-border);
+  margin: 4px 0;
+}
+
+/* --- PÁGINA DE PERFIL --- */
+.profileContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Header do Perfil (Avatar Grande + Nome) */
+.profileHeader {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 48px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.largeAvatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid var(--neon-purple);
+  padding: 4px;
+  position: relative;
+}
+
+.largeAvatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #000;
+}
+
+.editBadge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: var(--bg-overlay);
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  padding: 8px;
+  cursor: pointer;
+  color: #fff;
+  transition: all 0.2s;
+}
+
+.editBadge:hover {
+  background: var(--neon-cyan);
+  color: #000;
+}
+
+.userInfo h1 {
+  font-size: 32px;
+  margin: 0 0 8px 0;
+  color: #fff;
+}
+
+.userStatsLine {
+  display: flex;
+  gap: 24px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.userInfo {
+  flex: 1; /* Ocupa o resto do espaço */
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.userInfo h1 {
+  font-size: 32px;
+  margin: 0;
+  color: #fff;
+}
+
+.levelBadge {
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: #000;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+}
+
+.userStatsLine {
+  display: flex;
+  gap: 24px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* BARRA DE XP */
+.xpContainer {
+  width: 100%;
+  max-width: 400px;
+}
+
+.xpInfo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.xpTrack {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.xpFill {
+  height: 100%;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan);
+  border-radius: 4px;
+  transition: width 0.5s ease-out;
+}
+
+/* GRID DE ESTATÍSTICAS */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.statCard {
+  background: var(--glass-base);
+  border: 1px solid var(--glass-border);
+  padding: 24px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  transition: transform 0.2s;
+}
+
+.statCard:hover {
+  transform: translateY(-5px);
+  border-color: var(--neon-cyan);
+}
+
+.statValue {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.statLabel {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* GRID DE BADGES (CONQUISTAS) */
+.badgesSection h2 {
+  font-size: 20px;
+  margin-bottom: 24px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.badgesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 20px;
+}
+
+.badgeCard {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  opacity: 0.5; /* Desativado por padrão */
+  filter: grayscale(100%);
+  transition: all 0.3s;
+}
+
+.badgeUnlocked {
+  opacity: 1;
+  filter: grayscale(0%);
+  background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(168, 85, 247, 0.1) 100%);
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.1);
+}
+
+.badgeIcon {
+  font-size: 32px;
+}
+
+.badgeName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.badgeDesc {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* SELETOR DE AVATAR (GRID) */
+.avatarGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.avatarOption {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  overflow: hidden;
+}
+
+.avatarOption:hover { transform: scale(1.1); }
+.avatarOption.selected { border-color: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }

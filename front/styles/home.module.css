@@ -1,0 +1,330 @@
+/* home.module.css */
+
+/* Container Principal */
+.nexusContainer {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Cabeçalho da Página (Boas-vindas) */
+.welcomeSection {
+  margin-bottom: 40px;
+}
+
+.greeting {
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.subGreeting {
+  color: var(--text-secondary);
+  font-size: 16px;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+/* Grid de Cards */
+.sessionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* --- CARD DE HISTÓRIA --- */
+.storyCard {
+  text-decoration: none; 
+  color: inherit;
+  background: var(--glass-base);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  height: 320px; /* Altura fixa para alinhar */
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.storyCard a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Efeito Hover: Levanta e brilha a borda */
+.storyCard:hover {
+  transform: translateY(-5px);
+  background: var(--glass-hover);
+  border-color: rgba(34, 211, 238, 0.3); /* Brilho Ciano */
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* Header do Card */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.charName {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.charClass {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* Badge de Status (Localização) */
+.locationBadge {
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border);
+}
+
+/* Barra de Vida (HP) */
+.hpContainer {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.hpBar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px currentColor; /* Brilho na cor da barra */
+}
+
+/* Texto da Narrativa (Snippet) */
+.lastSnippet {
+  flex-grow: 1; /* Ocupa o espaço disponível */
+  font-family: 'Georgia', 'Merriweather', serif; /* Fonte Serifada para imersão */
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  
+  /* Gradiente para desvanecer o texto no final */
+  mask-image: linear-gradient(180deg, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, black 60%, transparent 100%);
+  overflow: hidden;
+}
+
+/* Botão de Ação */
+.resumeBtn {
+  margin-top: 16px;
+  width: 100%;
+  padding: 12px;
+  background: rgba(34, 211, 238, 0.05);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  color: var(--neon-cyan);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.storyCard:hover .resumeBtn {
+  background: var(--neon-cyan);
+  color: #000;
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
+}
+
+/* BOTÃO DE EXCLUIR (X) */
+.deleteBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10; /* Fica acima do link do card */
+  opacity: 0; /* Escondido por padrão */
+}
+
+.storyCard:hover .deleteBtn {
+  opacity: 1; /* Aparece ao passar o mouse no card */
+}
+
+.deleteBtn:hover {
+  background: var(--neon-red);
+  color: #fff;
+  border-color: var(--neon-red);
+  transform: scale(1.1);
+}
+
+/* ESTADO DE CARREGAMENTO */
+.loaderContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  color: var(--neon-cyan);
+  font-family: monospace;
+}
+
+/* --- CARD NOVA CRÔNICA --- */
+.newGameCard {
+  border-style: dashed; /* Borda tracejada */
+  border-color: rgba(255, 255, 255, 0.2);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: transparent;
+}
+
+.newGameCard:hover {
+  border-color: var(--neon-purple);
+  background: rgba(168, 85, 247, 0.05);
+  transform: translateY(-5px);
+}
+
+.plusIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 16px;
+  transition: all 0.3s;
+}
+
+.newGameCard:hover .plusIcon {
+  border-color: var(--neon-purple);
+  color: var(--neon-purple);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+  transform: scale(1.1);
+}
+
+.newGameTitle {
+  font-size: 18px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.newGameSub {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modalContent {
+  background: #09090b;
+  border: 1px solid rgba(239, 68, 68, 0.3); /* Borda Vermelha Suave */
+  padding: 32px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(239, 68, 68, 0.15);
+  animation: scaleIn 0.2s ease-out;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modalIcon {
+  width: 48px; height: 48px;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--neon-red);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.modalTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.modalText {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+}
+
+.cancelBtn {
+  flex: 1;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cancelBtn:hover { background: rgba(255,255,255,0.05); }
+
+.confirmBtn {
+  flex: 1;
+  padding: 12px;
+  background: var(--neon-red);
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.2s;
+}
+.confirmBtn:hover { background: #dc2626; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }

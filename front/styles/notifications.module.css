@@ -1,0 +1,150 @@
+/* notifications.module.css */
+
+/* O Menu Flutuante */
+.dropdown {
+  position: absolute;
+  top: 60px; /* Alinhado com o header */
+  right: 80px; /* Um pouco à esquerda do perfil */
+  width: 360px;
+  background: var(--bg-overlay);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideDown 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Cabeçalho do Dropdown */
+.header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255,255,255,0.02);
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.actionLink {
+  font-size: 11px;
+  color: var(--neon-cyan);
+  cursor: pointer;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.actionLink:hover { text-decoration: underline; }
+
+.clearLink {
+  color: var(--text-secondary);
+}
+.clearLink:hover { color: var(--neon-red); }
+
+/* Lista de Notificações */
+.list {
+  max-height: 400px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Item Individual */
+.item {
+  display: flex;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  background: transparent;
+  transition: background 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+
+.item:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+/* Estado Não Lido (Destaque) */
+.unread {
+  background: rgba(34, 211, 238, 0.03);
+}
+.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan);
+}
+
+/* Ícone */
+.iconWrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Cores dos Ícones por Tipo */
+.typeSystem { background: rgba(168, 85, 247, 0.1); color: var(--neon-purple); }
+.typeGame { background: rgba(34, 211, 238, 0.1); color: var(--neon-cyan); }
+.typeSocial { background: rgba(239, 68, 68, 0.1); color: var(--neon-red); }
+.typeAlert { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+
+/* Texto */
+.content {
+  flex: 1;
+}
+
+.message {
+  font-size: 13px;
+  color: #e2e8f0;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.time {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Bolinha azul de "Novo" dentro do item */
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon-cyan);
+  align-self: center;
+}
+
+/* Estado Vazio */
+.emptyState {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+}

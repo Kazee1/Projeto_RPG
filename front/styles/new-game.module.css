@@ -1,0 +1,322 @@
+/* new-game.module.css */
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  padding-bottom: 80px;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  margin-bottom: 40px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 20px;
+}
+
+.pageTitle {
+  font-size: 32px;
+  font-weight: 300;
+  color: #fff;
+  margin: 0 0 8px 0;
+  letter-spacing: 2px;
+}
+
+.pageSubtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Layout de Grid (2 Colunas) */
+.setupGrid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr; /* Esquerda maior que direita */
+  gap: 40px;
+}
+
+/* --- SEÇÃO DE SISTEMAS (CARDS GRANDES) --- */
+.sectionLabel {
+  display: block;
+  color: var(--neon-cyan);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.systemsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.systemCard {
+  background: var(--glass-base);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.systemCard:hover {
+  background: var(--glass-hover);
+  transform: translateY(-2px);
+}
+
+.systemActive {
+  background: rgba(34, 211, 238, 0.1);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.15);
+}
+
+.systemIcon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.systemName {
+  font-weight: 600;
+  color: #fff;
+  font-size: 15px;
+}
+
+.systemDesc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* --- SEÇÃO DE GÊNEROS (TAG CLOUD) --- */
+.genresWrapper {
+  margin-bottom: 40px;
+}
+
+.genreCloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 8px; /* Espaço para scrollbar */
+}
+
+/* Scrollbar fina para os gêneros */
+.genreCloud::-webkit-scrollbar { width: 6px; }
+.genreCloud::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+.genreTag {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.genreTag:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.genreSelected {
+  background: rgba(168, 85, 247, 0.2); /* Roxo */
+  border-color: var(--neon-purple);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+}
+
+/* --- COLUNA DIREITA (INPUTS) --- */
+.formPanel {
+  background: var(--glass-base);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 32px;
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+
+.inputGroup {
+  margin-bottom: 24px;
+}
+
+.label {
+  display: block;
+  color: #fff;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.infoText {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+.glassInput {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+  padding: 14px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  transition: border 0.3s;
+}
+
+.glassInput:focus {
+  border-color: var(--neon-cyan);
+}
+
+/* --- DIFICULDADE (SLIDER VISUAL) --- */
+/* Container dos botões */
+.difficultyContainer {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Botão Base */
+.diffBtn {
+  flex: 1;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.diffBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Cores específicas para cada dificuldade (Bordas e Textos ao passar mouse ou ativar) */
+.diffEasy:hover, .diffEasy.active { border-color: #10b981; color: #10b981; } /* Verde */
+.diffNormal:hover, .diffNormal.active { border-color: #3b82f6; color: #3b82f6; } /* Azul */
+.diffHard:hover, .diffHard.active { border-color: #f59e0b; color: #f59e0b; } /* Laranja */
+.diffImpossible:hover, .diffImpossible.active { border-color: #ef4444; color: #ef4444; } /* Vermelho */
+
+/* ESTADO ATIVO (O SEGREDO) */
+/* Quando a classe .active é aplicada junto com .diffBtn */
+.diffBtn.active {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0,0,0,0.5) inset; /* Efeito de botão "apertado" */
+  font-weight: bold;
+}
+
+/* Opcional: Adicionar um glow baseado na cor */
+.diffEasy.active { background: rgba(16, 185, 129, 0.1); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+.diffNormal.active { background: rgba(59, 130, 246, 0.1); box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); }
+.diffHard.active { background: rgba(245, 158, 11, 0.1); box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
+.diffImpossible.active { background: rgba(239, 68, 68, 0.1); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+
+/* --- BOTÃO FINAL --- */
+.submitBtn {
+  width: 100%;
+  padding: 16px;
+  margin-top: 32px;
+  background: linear-gradient(135deg, var(--neon-purple) 0%, var(--neon-cyan) 100%);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+  transition: transform 0.2s;
+}
+
+.submitBtn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+}
+
+/* --- TOOLTIPS DOS ATRIBUTOS --- */
+
+.infoIconWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  cursor: help;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.infoIconWrapper:hover {
+  color: var(--neon-cyan);
+}
+
+/* O Balão de Texto */
+.tooltipBox {
+  visibility: hidden;
+  width: 220px;
+  background-color: rgba(5, 5, 8, 0.95); /* Fundo quase preto */
+  border: 1px solid var(--neon-cyan);
+  color: #fff;
+  text-align: left;
+  border-radius: 8px;
+  padding: 10px;
+  position: absolute;
+  z-index: 100;
+  
+  /* Posicionamento (Acima do ícone) */
+  bottom: 135%; 
+  left: 50%;
+  transform: translateX(-50%); /* Centraliza */
+  
+  opacity: 0;
+  transition: all 0.2s ease-in-out;
+  font-size: 12px;
+  line-height: 1.4;
+  pointer-events: none; /* O mouse não atrapalha */
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.15);
+}
+
+/* Seta do balão (triângulo embaixo) */
+.tooltipBox::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--neon-cyan) transparent transparent transparent;
+}
+
+.infoIconWrapper:hover .tooltipBox {
+  visibility: visible;
+  opacity: 1;
+  bottom: 125%; /* Pequeno movimento de subida */
+}
+
+/* Responsivo */
+@media (max-width: 900px) {
+  .setupGrid { grid-template-columns: 1fr; }
+  .formPanel { position: static; }
+}

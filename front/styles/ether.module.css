@@ -1,0 +1,312 @@
+/* ether.module.css */
+
+.etherContainer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- SEÇÃO 1: FAVORITOS (Header) --- */
+.favoritesSection {
+  margin-bottom: 48px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 32px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.viewAllLink {
+  color: var(--neon-cyan);
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.viewAllLink:hover { opacity: 0.8; }
+
+/* Grid de Favoritos (Horizontal) */
+.favGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.favCard {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(20, 20, 35, 0.4) 100%);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.favCard:hover {
+  border-color: var(--neon-purple);
+  transform: translateY(-3px);
+  background: linear-gradient(145deg, rgba(168, 85, 247, 0.1) 0%, rgba(20, 20, 35, 0.4) 100%);
+}
+
+.favIcon {
+  width: 48px;
+  height: 48px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+/* --- SEÇÃO 2: FEED PÚBLICO (Posters) --- */
+
+/* Barra de Controle (Busca + Filtros) */
+.controlsBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  background: var(--glass-base);
+  padding: 16px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+}
+
+.searchGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 50%;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  width: 100%;
+  outline: none;
+}
+
+.filterGroup {
+  display: flex;
+  gap: 24px;
+}
+
+.filterTab {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  position: relative;
+  padding: 8px 0;
+  transition: color 0.3s;
+}
+
+.filterTab:hover { color: #fff; }
+
+.filterActive {
+  color: #fff;
+}
+
+.filterActive::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--neon-purple);
+  box-shadow: 0 0 10px var(--neon-purple);
+}
+
+/* Grid Público (Vertical Posters) */
+.publicGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Responsivo, ~3 por linha em telas médias */
+  gap: 32px;
+}
+
+/* O Card Vertical (Estilo Poster) */
+.posterCard {
+  background: var(--bg-overlay); /* Um pouco mais escuro */
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border: 1px solid transparent;
+  height: 420px; /* Altura fixa para alinhar */
+  display: flex;
+  flex-direction: column;
+}
+
+.posterCard:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  z-index: 10;
+}
+
+/* Área da Capa (Gradiente Abstrato) */
+.posterCover {
+  height: 65%; /* Ocupa a maior parte do card */
+  position: relative;
+  overflow: hidden;
+}
+
+.gradientBg {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s;
+}
+
+.posterCard:hover .gradientBg {
+  transform: scale(1.1); /* Zoom suave no fundo */
+}
+
+/* Overlay que aparece no hover */
+.hoverOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.posterCard:hover .hoverOverlay {
+  opacity: 1;
+}
+
+.actionBtn {
+  padding: 12px 24px;
+  background: #fff;
+  color: #000;
+  border-radius: 30px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border: none;
+  transform: translateY(20px);
+  transition: transform 0.3s;
+}
+
+.posterCard:hover .actionBtn {
+  transform: translateY(0);
+}
+
+/* Conteúdo do Card (Texto) */
+.posterContent {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--glass-base);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.posterTitle {
+  font-size: 18px;
+  color: #fff;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
+}
+
+.posterAuthor {
+  font-size: 12px;
+  color: var(--neon-cyan);
+  margin-bottom: 12px;
+}
+
+.authorLink {
+  color: inherit; /* Herda a cor cinza do pai */
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s;
+  position: relative;
+  z-index: 5; /* Garante que é clicável */
+}
+
+.authorLink:hover {
+  color: var(--neon-cyan);
+  border-bottom-color: var(--neon-cyan);
+}
+
+.posterStats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 12px;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.likeActive {
+  color: var(--neon-red);
+}
+
+/* Botão Carregar Mais */
+.loadMoreBtn {
+  display: block;
+  width: 100%;
+  padding: 20px;
+  margin-top: 48px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px dashed var(--glass-border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s;
+  border-radius: 12px;
+}
+
+.loadMoreBtn:hover {
+  border-color: var(--neon-purple);
+  color: #fff;
+  background: rgba(168, 85, 247, 0.05);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .favGrid { grid-template-columns: 1fr; }
+  .controlsBar { flex-direction: column; gap: 20px; align-items: flex-start; }
+  .searchGroup { width: 100%; }
+}

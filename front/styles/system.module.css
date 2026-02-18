@@ -1,0 +1,252 @@
+/* system.module.css */
+
+.systemContainer {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  gap: 32px;
+  animation: fadeIn 0.5s ease-out;
+  height: calc(100vh - 140px); /* Ajuste para não scrollar a pagina toda */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* --- MENU LATERAL (TABS) --- */
+.sidebarSettings {
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-right: 1px solid var(--glass-border);
+  padding-right: 24px;
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  font-size: 14px;
+}
+
+.tabBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.tabActive {
+  background: rgba(34, 211, 238, 0.1);
+  color: var(--neon-cyan);
+  font-weight: 500;
+  box-shadow: inset 2px 0 0 0 var(--neon-cyan); /* Linha na esquerda dentro do botão */
+}
+
+/* --- ÁREA DE CONTEÚDO --- */
+.contentArea {
+  flex: 1;
+  background: var(--glass-base);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 32px;
+  overflow-y: auto; /* Scroll apenas no painel */
+}
+
+.sectionTitle {
+  font-size: 24px;
+  font-weight: 300;
+  color: #fff;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sectionDesc {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 16px;
+}
+
+/* --- GRUPOS DE CONFIGURAÇÃO --- */
+.settingGroup {
+  margin-bottom: 32px;
+}
+
+.groupLabel {
+  display: block;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: border-color 0.3s;
+}
+
+.row:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.rowInfo h4 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  color: #fff;
+}
+.rowInfo p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* --- COMPONENTES DE FORMULÁRIO --- */
+
+/* Toggle Switch (Neon) */
+.toggleSwitch {
+  position: relative;
+  width: 48px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.toggleActive {
+  background: rgba(34, 211, 238, 0.2);
+  border: 1px solid var(--neon-cyan);
+}
+
+.toggleHandle {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggleActive .toggleHandle {
+  transform: translateX(24px);
+  background: var(--neon-cyan);
+  box-shadow: 0 0 10px var(--neon-cyan);
+}
+
+/* Range Slider Customizado */
+.rangeInput {
+  -webkit-appearance: none;
+  width: 150px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  outline: none;
+}
+
+.rangeInput::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--neon-cyan);
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--neon-cyan);
+  transition: transform 0.1s;
+}
+
+.rangeInput::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* Select Box */
+.selectInput {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--glass-border);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.selectInput:focus {
+  border-color: var(--neon-cyan);
+}
+
+/* --- ZONA DE PERIGO --- */
+.dangerZone {
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.05);
+  padding: 24px;
+  border-radius: 12px;
+  margin-top: 40px;
+}
+
+.dangerTitle {
+  color: var(--neon-red);
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dangerBtn {
+  background: transparent;
+  border: 1px solid var(--neon-red);
+  color: var(--neon-red);
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.dangerBtn:hover {
+  background: var(--neon-red);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .systemContainer {
+    flex-direction: column;
+    height: auto;
+  }
+  .sidebarSettings {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 16px;
+  }
+  .contentArea {
+    padding: 20px;
+  }
+}
