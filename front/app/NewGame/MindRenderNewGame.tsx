@@ -97,21 +97,21 @@ const skillDescriptions: Record<string, string> = {
   intelecto: "Raciocínio lógico, memória e conhecimento arcano/tecnológico.",
   sabedoria: "Percepção, intuição, força de vontade e conexão divina.",
   carisma: "Força de personalidade, persuasão e liderança.",
-  
+
   // Cyberpunk
   reflexos: "Tempo de reação e precisão em combate.",
   tecnica: "Habilidade com reparos, tecnologia e manuseio de equipamentos.",
   corpo: "Resistência física a dano, implantes e traumas.",
   vontade: "Resistência mental, coragem e determinação.",
   empatia: "Capacidade de se relacionar com outros e manter a humanidade.",
-  
+
   // Vampiro
   fisico: "Atributos corporais gerais (Força/Destreza/Vigor).",
   social: "Capacidade de interação, etiqueta e influência em sociedade.",
   mental: "Capacidade cognitiva, astúcia e conhecimentos.",
   presenca: "Impacto imediato, magnetismo pessoal e intimidação.",
   manipulacao: "Capacidade de influenciar outros sutilmente ou com lábia.",
-  
+
   // Fallout
   percepcao: "Atenção aos detalhes, mira e sentidos aguçados.",
   resistencia: "Capacidade de suportar radiação, fome e dano físico.",
@@ -147,7 +147,7 @@ export default function MindRenderNewGame() {
   // 3. ATUALIZAÇÃO DINÂMICA
   useEffect(() => {
     const selectedSystemConfig = rpgSystems[formData.system];
-    
+
     if (selectedSystemConfig) {
       // Cria novo objeto de atributos
       const newAttributes = selectedSystemConfig.skills.reduce((acc, skill) => {
@@ -212,39 +212,26 @@ export default function MindRenderNewGame() {
         is_public: formData.isPublic,
       };
 
-      const { data: story, error } = await supabase
-        .from('stories')
-        .insert(storyPayload)
-        .select()
-        .single();
+      const { data: story } = await supabase.from('stories').insert(storyPayload).select().single();
 
-      if (error) throw error;
+      // 2. Dispara o start (Fire and Forget)
+      fetch('/api/game/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          story_id: story.id,
+          character_name: formData.charName,
+          class_name:     formData.class,
+          system:         formData.system,
+          difficulty:     formData.difficulty,
+          genres:         formData.genres,
+          background:     formData.background,
+          attributes:     formData.attributes,
+          
+        })
+      }).catch(e => console.log("Start disparado")); // Não espera, não trata erro
 
-      try {
-        const response = await fetch('/api/game/start', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json' 
-          },
-          body: JSON.stringify({
-            story_id: story.id,
-            character_name: formData.charName,
-            system: formData.system,
-            class_name: formData.class,
-            background: formData.background,
-            genres: formData.genres,
-            difficulty: formData.difficulty
-          })
-        });
-
-        if (!response.ok) {
-           console.warn("Aviso: O n8n demorou ou falhou, mas o jogo foi criado.");
-        }
-
-      } catch (apiError) {
-        console.error("Erro na comunicação com a API interna:", apiError);
-      }
-
+      // 3. Redireciona IMEDIATAMENTE
       router.push(`/game/${story.id}`);
 
     } catch (error) {
@@ -256,7 +243,7 @@ export default function MindRenderNewGame() {
 
   return (
     <div className={styles.container}>
-      
+
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Inicializar Nova Simulação</h1>
         <p className={styles.pageSubtitle}>Defina os parâmetros da realidade que você deseja renderizar.</p>
@@ -282,179 +269,179 @@ export default function MindRenderNewGame() {
               ))}
             </div>
           </div>
-          
+
           <div className={styles.genresWrapper}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-               <label className={styles.sectionLabel} style={{ marginBottom: 0 }}>Tags de Gênero</label>
-               <span style={{ fontSize: '13px', fontWeight: '600', color: formData.genres.length === 5 ? 'var(--neon-purple)' : 'var(--text-secondary)' }}>
-                 {formData.genres.length} <span style={{ opacity: 0.5 }}>/ 5</span>
-               </span>
+              <label className={styles.sectionLabel} style={{ marginBottom: 0 }}>Tags de Gênero</label>
+              <span style={{ fontSize: '13px', fontWeight: '600', color: formData.genres.length === 5 ? 'var(--neon-purple)' : 'var(--text-secondary)' }}>
+                {formData.genres.length} <span style={{ opacity: 0.5 }}>/ 5</span>
+              </span>
             </div>
             <div className={styles.genreCloud}>
-               {allGenres.map((genre) => (
-                 <button
-                   key={genre}
-                   className={`${styles.genreTag} ${formData.genres.includes(genre) ? styles.genreSelected : ''}`}
-                   onClick={() => toggleGenre(genre)}
-                   style={{
-                     opacity: (formData.genres.length >= 5 && !formData.genres.includes(genre)) ? 0.4 : 1,
-                     cursor: (formData.genres.length >= 5 && !formData.genres.includes(genre)) ? 'not-allowed' : 'pointer'
-                   }}
-                 >
-                   {genre}
-                 </button>
-               ))}
+              {allGenres.map((genre) => (
+                <button
+                  key={genre}
+                  className={`${styles.genreTag} ${formData.genres.includes(genre) ? styles.genreSelected : ''}`}
+                  onClick={() => toggleGenre(genre)}
+                  style={{
+                    opacity: (formData.genres.length >= 5 && !formData.genres.includes(genre)) ? 0.4 : 1,
+                    cursor: (formData.genres.length >= 5 && !formData.genres.includes(genre)) ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {genre}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
         {/* COLUNA DIREITA */}
         <div className={styles.formPanel}>
-             <div className={styles.inputGroup}>
-                <label className={styles.label}>Nome do Personagem</label>
-                <input
-                  type="text"
-                  className={styles.glassInput}
-                  placeholder="Ex: Kael, Unit-734..."
-                  value={formData.charName}
-                  onChange={(e) => setFormData({ ...formData, charName: e.target.value })}
-                />
-             </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Nome do Personagem</label>
+            <input
+              type="text"
+              className={styles.glassInput}
+              placeholder="Ex: Kael, Unit-734..."
+              value={formData.charName}
+              onChange={(e) => setFormData({ ...formData, charName: e.target.value })}
+            />
+          </div>
 
-             <div className={styles.inputGroup}>
-                <label className={styles.label}>Título da Crônica (Opcional)</label>
-                <input
-                  type="text"
-                  className={styles.glassInput}
-                  placeholder="Ex: A Queda de Night City"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                />
-             </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Título da Crônica (Opcional)</label>
+            <input
+              type="text"
+              className={styles.glassInput}
+              placeholder="Ex: A Queda de Night City"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            />
+          </div>
 
-             <div className={styles.inputGroup}>
-               <label className={styles.label}>Classe / Arquétipo</label>
-               <select
-                 className={styles.glassInput}
-                 value={formData.class}
-                 onChange={(e) => setFormData({ ...formData, class: e.target.value })}
-                 style={{ cursor: 'pointer' }}
-               >
-                 {classOptions[formData.system].map(cls => (
-                   <option key={cls} value={cls} style={{ background: '#000' }}>{cls}</option>
-                 ))}
-               </select>
-             </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Classe / Arquétipo</label>
+            <select
+              className={styles.glassInput}
+              value={formData.class}
+              onChange={(e) => setFormData({ ...formData, class: e.target.value })}
+              style={{ cursor: 'pointer' }}
+            >
+              {classOptions[formData.system].map(cls => (
+                <option key={cls} value={cls} style={{ background: '#000' }}>{cls}</option>
+              ))}
+            </select>
+          </div>
 
-             {/* ÁREA DE ATRIBUTOS DINÂMICA */}
-             <div className={styles.inputGroup} style={{ background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
-                   <label className={styles.label} style={{ marginBottom: 0 }}>Atributos ({rpgSystems[formData.system].name})</label>
-                   <div style={{
-                     background: pointsRemaining === 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(34, 211, 238, 0.1)',
-                     padding: '6px 12px', borderRadius: '20px',
-                     border: pointsRemaining === 0 ? '1px solid var(--neon-green)' : '1px solid var(--neon-cyan)'
-                   }}>
-                     <span style={{ fontSize: '13px', color: '#fff' }}>
-                       Pontos: <strong style={{ color: pointsRemaining === 0 ? 'var(--neon-green)' : 'var(--neon-cyan)', fontSize: '15px' }}>{pointsRemaining}</strong> / {TOTAL_POOL}
-                     </span>
-                   </div>
-                 </div>
-                 
-                 {Object.keys(formData.attributes).map((key) => {
-                   const val = formData.attributes[key];
-                   const canAdd = pointsRemaining > 0;
-                   const canRemove = val > 0;
-                   
-                   return (
-                     <div key={key} style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', gap: '16px' }}>
-                        <div style={{ width: '140px', display: 'flex', flexDirection:'column', flexShrink: 0 }}>
-                           <span style={{ textTransform: 'capitalize', fontSize: '14px', fontWeight: '600', color: canRemove ? '#fff' : 'var(--text-secondary)' }}>
-                             {key}
-                           </span>
-                           <span style={{ fontSize: '10px', color: 'var(--text-secondary)', lineHeight: '1.2', marginTop: '2px' }}>
-                             {skillDescriptions[key] || "Atributo chave."}
-                           </span>
-                        </div>
-                        
-                        <button onClick={() => handleAttribute(key, -1)} disabled={!canRemove} style={{ background: 'none', border: '1px solid var(--glass-border)', color: canRemove ? '#fff' : 'rgba(255,255,255,0.2)', cursor: canRemove ? 'pointer' : 'not-allowed', borderRadius: '6px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Minus size={14} /></button>
-                        
-                        <div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', position: 'relative', overflow: 'hidden' }}>
-                           <div style={{ width: `${(val / MAX_VISUAL) * 100}%`, height: '100%', background: val > 5 ? 'var(--neon-purple)' : 'var(--neon-cyan)', borderRadius: '4px', transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)' }}></div>
-                        </div>
-                        
-                        <span style={{ width: '30px', textAlign: 'center', fontSize: '15px', fontWeight: 'bold', color: val > 0 ? '#fff' : 'rgba(255,255,255,0.3)' }}>{val}</span>
-                        
-                        <button onClick={() => handleAttribute(key, 1)} disabled={!canAdd} style={{ background: canAdd ? 'rgba(34, 211, 238, 0.1)' : 'transparent', border: canAdd ? '1px solid var(--neon-cyan)' : '1px solid rgba(255,255,255,0.1)', color: canAdd ? 'var(--neon-cyan)' : 'rgba(255,255,255,0.2)', cursor: canAdd ? 'pointer' : 'not-allowed', borderRadius: '6px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Plus size={14} /></button>
-                     </div>
-                   )
-                 })}
-             </div>
+          {/* ÁREA DE ATRIBUTOS DINÂMICA */}
+          <div className={styles.inputGroup} style={{ background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
+              <label className={styles.label} style={{ marginBottom: 0 }}>Atributos ({rpgSystems[formData.system].name})</label>
+              <div style={{
+                background: pointsRemaining === 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(34, 211, 238, 0.1)',
+                padding: '6px 12px', borderRadius: '20px',
+                border: pointsRemaining === 0 ? '1px solid var(--neon-green)' : '1px solid var(--neon-cyan)'
+              }}>
+                <span style={{ fontSize: '13px', color: '#fff' }}>
+                  Pontos: <strong style={{ color: pointsRemaining === 0 ? 'var(--neon-green)' : 'var(--neon-cyan)', fontSize: '15px' }}>{pointsRemaining}</strong> / {TOTAL_POOL}
+                </span>
+              </div>
+            </div>
 
-             <div className={styles.inputGroup}>
-                <label className={styles.label}>Antecedentes (Background)</label>
-                <textarea
-                  className={styles.glassInput}
-                  rows={4}
-                  placeholder="Quem é você? De onde veio? O que busca?"
-                  value={formData.background}
-                  onChange={(e) => setFormData({ ...formData, background: e.target.value })}
-                  style={{ resize: 'vertical', minHeight: '80px' }}
-                />
-             </div>
+            {Object.keys(formData.attributes).map((key) => {
+              const val = formData.attributes[key];
+              const canAdd = pointsRemaining > 0;
+              const canRemove = val > 0;
 
-             <div className={styles.inputGroup}>
-                <label className={styles.label}>Nível de Desafio</label>
-                <div className={styles.difficultyContainer}>
-                   {difficulties.map((diff) => (
-                     <button
-                       key={diff.id}
-                       className={`${styles.diffBtn} ${diff.class} ${formData.difficulty === diff.id ? styles.active : ''}`}
-                       onClick={() => setFormData({ ...formData, difficulty: diff.id })}
-                     >
-                       {diff.label}
-                     </button>
-                   ))}
+              return (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', gap: '16px' }}>
+                  <div style={{ width: '140px', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+                    <span style={{ textTransform: 'capitalize', fontSize: '14px', fontWeight: '600', color: canRemove ? '#fff' : 'var(--text-secondary)' }}>
+                      {key}
+                    </span>
+                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', lineHeight: '1.2', marginTop: '2px' }}>
+                      {skillDescriptions[key] || "Atributo chave."}
+                    </span>
+                  </div>
+
+                  <button onClick={() => handleAttribute(key, -1)} disabled={!canRemove} style={{ background: 'none', border: '1px solid var(--glass-border)', color: canRemove ? '#fff' : 'rgba(255,255,255,0.2)', cursor: canRemove ? 'pointer' : 'not-allowed', borderRadius: '6px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Minus size={14} /></button>
+
+                  <div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ width: `${(val / MAX_VISUAL) * 100}%`, height: '100%', background: val > 5 ? 'var(--neon-purple)' : 'var(--neon-cyan)', borderRadius: '4px', transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)' }}></div>
+                  </div>
+
+                  <span style={{ width: '30px', textAlign: 'center', fontSize: '15px', fontWeight: 'bold', color: val > 0 ? '#fff' : 'rgba(255,255,255,0.3)' }}>{val}</span>
+
+                  <button onClick={() => handleAttribute(key, 1)} disabled={!canAdd} style={{ background: canAdd ? 'rgba(34, 211, 238, 0.1)' : 'transparent', border: canAdd ? '1px solid var(--neon-cyan)' : '1px solid rgba(255,255,255,0.1)', color: canAdd ? 'var(--neon-cyan)' : 'rgba(255,255,255,0.2)', cursor: canAdd ? 'pointer' : 'not-allowed', borderRadius: '6px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Plus size={14} /></button>
                 </div>
-             </div>
+              )
+            })}
+          </div>
 
-             <div className={styles.inputGroup}>
-                <label className={styles.label}>Visibilidade da Crônica</label>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                   <button
-                     onClick={() => setFormData({ ...formData, isPublic: false })}
-                     style={{
-                        flex: 1, padding: '12px', borderRadius: '8px',
-                        border: !formData.isPublic ? '1px solid var(--neon-cyan)' : '1px solid var(--glass-border)',
-                        background: !formData.isPublic ? 'rgba(34, 211, 238, 0.1)' : 'transparent',
-                        color: !formData.isPublic ? '#fff' : 'var(--text-secondary)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 0.2s'
-                     }}
-                   >
-                     <Lock size={16} /> Privada (Solo)
-                   </button>
-                   <button
-                     onClick={() => setFormData({ ...formData, isPublic: true })}
-                     style={{
-                        flex: 1, padding: '12px', borderRadius: '8px',
-                        border: formData.isPublic ? '1px solid var(--neon-purple)' : '1px solid var(--glass-border)',
-                        background: formData.isPublic ? 'rgba(168, 85, 247, 0.1)' : 'transparent',
-                        color: formData.isPublic ? '#fff' : 'var(--text-secondary)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 0.2s'
-                     }}
-                   >
-                     <Globe size={16} /> Pública (Ether)
-                   </button>
-                </div>
-             </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Antecedentes (Background)</label>
+            <textarea
+              className={styles.glassInput}
+              rows={4}
+              placeholder="Quem é você? De onde veio? O que busca?"
+              value={formData.background}
+              onChange={(e) => setFormData({ ...formData, background: e.target.value })}
+              style={{ resize: 'vertical', minHeight: '80px' }}
+            />
+          </div>
 
-             <button
-               className={styles.submitBtn}
-               onClick={handleSubmit}
-               disabled={loading}
-             >
-               {loading ? <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}><Loader2 className="spin" size={20} /> <span>SINCRONIZANDO...</span></div> : "RENDERIZAR UNIVERSO"}
-             </button>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Nível de Desafio</label>
+            <div className={styles.difficultyContainer}>
+              {difficulties.map((diff) => (
+                <button
+                  key={diff.id}
+                  className={`${styles.diffBtn} ${diff.class} ${formData.difficulty === diff.id ? styles.active : ''}`}
+                  onClick={() => setFormData({ ...formData, difficulty: diff.id })}
+                >
+                  {diff.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Visibilidade da Crônica</label>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => setFormData({ ...formData, isPublic: false })}
+                style={{
+                  flex: 1, padding: '12px', borderRadius: '8px',
+                  border: !formData.isPublic ? '1px solid var(--neon-cyan)' : '1px solid var(--glass-border)',
+                  background: !formData.isPublic ? 'rgba(34, 211, 238, 0.1)' : 'transparent',
+                  color: !formData.isPublic ? '#fff' : 'var(--text-secondary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 0.2s'
+                }}
+              >
+                <Lock size={16} /> Privada (Solo)
+              </button>
+              <button
+                onClick={() => setFormData({ ...formData, isPublic: true })}
+                style={{
+                  flex: 1, padding: '12px', borderRadius: '8px',
+                  border: formData.isPublic ? '1px solid var(--neon-purple)' : '1px solid var(--glass-border)',
+                  background: formData.isPublic ? 'rgba(168, 85, 247, 0.1)' : 'transparent',
+                  color: formData.isPublic ? '#fff' : 'var(--text-secondary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 0.2s'
+                }}
+              >
+                <Globe size={16} /> Pública (Ether)
+              </button>
+            </div>
+          </div>
+
+          <button
+            className={styles.submitBtn}
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}><Loader2 className="spin" size={20} /> <span>SINCRONIZANDO...</span></div> : "RENDERIZAR UNIVERSO"}
+          </button>
         </div>
       </div>
     </div>

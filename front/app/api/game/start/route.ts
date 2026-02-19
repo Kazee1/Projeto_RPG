@@ -15,10 +15,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // O Next.js chama o n8n (Servidor -> Servidor = Sem CORS)
-    // IMPORTANTE: Aqui trocamos '/webhook-test/' por '/webhook/' para produção automática
-    // Se sua URL no .env já for /webhook/, ele mantém.
-    const productionUrl = N8N_WEBHOOK_URL.replace('/webhook-test/', '/webhook/');
+    const productionUrl = N8N_WEBHOOK_URL
 
     const n8nResponse = await fetch(productionUrl, {
       method: 'POST',

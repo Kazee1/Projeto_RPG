@@ -18,8 +18,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Configuração de servidor incompleta.' }, { status: 500 });
     }
 
-    // Ajuste para URL de produção (webhook-test -> webhook)
-    const productionUrl = N8N_WEBHOOK_URL.replace('/webhook-test/', '/webhook/');
+    const productionUrl = N8N_WEBHOOK_URL
 
     // Chama o n8n para gerar o resumo (Fire and Forget ou Await, aqui faremos await para logar erro)
     const n8nResponse = await fetch(productionUrl, {
