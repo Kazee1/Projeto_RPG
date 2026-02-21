@@ -52,6 +52,7 @@ interface Choice {
   skillCheck?: string;
   difficulty?: number;
   diceType?: DiceType;
+  is_attack?: boolean;
 }
 
 interface CharacterStats {
@@ -75,104 +76,79 @@ interface StatusEffect {
   source: string;
 }
 
-// ─── HELPERS DE STAT DISPLAY ──────────────────────────────────────────────────
+// Novos tipos para a fase de ataque
+type CombatPhase = 'idle' | 'awaiting_attack_choice' | 'rolling_damage';
 
-/**
- * Renderiza os stats de um EquipmentItem de forma legível.
- * Suporta: damage_dice, armor, status_bonus, bonus_value
- */
+interface AttackChoice {
+  id: string;
+  text: string;
+  damageDice: DiceType;
+  damageAttr: string;
+  damageBonus: number;
+  flavor: string;
+}
+
+interface AttackChoicesRow {
+  id: string;
+  story_id: string;
+  choices: {
+    id: string;
+    text: string;
+    flavor: string;
+    damage_dice: string;
+    damage_bonus: number;
+    damage_attr: string;
+  }[];
+  target_name: string | null;
+  weapon_name: string | null;
+  damage_dice: string | null;
+  primary_attr: string | null;
+  is_used: boolean;
+  chosen_id: string | null;
+}
+
+// ─── HELPERS DE STAT DISPLAY ──────────────────────────────────────────────────
 const renderEquipmentStats = (item: EquipmentItem): React.ReactNode => {
   const s = item.stats ?? {};
   const parts: React.ReactNode[] = [];
 
-  // Arma (main_hand)
-  if (s.damage_dice) {
-    parts.push(
-      <span key="dmg" style={{ color: '#ef4444' }}>
-        ⚔️ {s.damage_dice}
-      </span>
-    );
-  }
-
-  // Armadura (body, head, legs, off_hand)
-  if (s.armor && s.armor > 0) {
-    parts.push(
-      <span key="armor" style={{ color: '#3b82f6' }}>
-        🛡️ +{s.armor} CA
-      </span>
-    );
-  }
-
-  // Atributo bônus (presente em todos os slots)
+  if (s.damage_dice) parts.push(<span key="dmg" style={{ color: '#ef4444' }}>⚔️ {s.damage_dice}</span>);
+  if (s.armor && s.armor > 0) parts.push(<span key="armor" style={{ color: '#3b82f6' }}>🛡️ +{s.armor} CA</span>);
   if (s.status_bonus) {
     const bonusVal = s.bonus_value ?? 1;
-    parts.push(
-      <span key="bonus" style={{ color: '#a855f7' }}>
-        ✦ +{bonusVal} {s.status_bonus}
-      </span>
-    );
+    parts.push(<span key="bonus" style={{ color: '#a855f7' }}>✦ +{bonusVal} {s.status_bonus}</span>);
   }
 
   if (parts.length === 0) return <span style={{ color: '#52525b' }}>Equipado</span>;
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {parts}
-    </div>
-  );
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{parts}</div>;
 };
 
-/**
- * Renderiza os stats de um Item do inventário (weapon/armor usam effect_data).
- */
 const renderInventoryStats = (item: Item): React.ReactNode => {
   const e = item.effect_data ?? {};
 
-  if (item.type === 'consumable' && e.heal) {
-    return <span style={{ color: '#10b981' }}>🧪 Cura {e.heal} HP</span>;
-  }
-
+  if (item.type === 'consumable' && e.heal) return <span style={{ color: '#10b981' }}>🧪 Cura {e.heal} HP</span>;
   if (item.type === 'weapon') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {e.damage_dice && <span style={{ color: '#ef4444' }}>⚔️ {e.damage_dice}</span>}
-        {e.status_bonus && (
-          <span style={{ color: '#a855f7' }}>✦ +1 {e.status_bonus}</span>
-        )}
+        {e.status_bonus && <span style={{ color: '#a855f7' }}>✦ +1 {e.status_bonus}</span>}
       </div>
     );
   }
-
   if (item.type === 'armor') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {e.armor && e.armor > 0 && <span style={{ color: '#3b82f6' }}>🛡️ +{e.armor} CA</span>}
-        {e.status_bonus && (
-          <span style={{ color: '#a855f7' }}>✦ +1 {e.status_bonus}</span>
-        )}
+        {e.status_bonus && <span style={{ color: '#a855f7' }}>✦ +1 {e.status_bonus}</span>}
       </div>
     );
   }
-
   return <span style={{ color: '#6b7280' }}>Item</span>;
 };
 
 // ─── CÁLCULO DE BÔNUS DO DADO ──────────────────────────────────────────────────
-/**
- * Calcula o bônus do atributo a ser somado no dado.
- * - Dificuldades easy/normal/hard: a cada 3 pontos no atributo = +1
- * - Dificuldades hard_plus/impossible: a cada 4 pontos = +1
- *
- * O atributo relevante vem do skillCheck da choice.
- * Busca no objeto stats pelo nome completo ou pela sigla (case-insensitive).
- */
-/**
- * Encontra o valor do atributo em stats pelo skillCheck (nome ou sigla).
- */
-const findStatValue = (
-  skillCheck: string,
-  stats: Record<string, number>,
-): number => {
+const findStatValue = (skillCheck: string, stats: Record<string, number>): number => {
   if (!skillCheck || !stats) return 0;
   const key = skillCheck.toLowerCase();
   return Object.entries(stats).find(([k]) => {
@@ -181,23 +157,9 @@ const findStatValue = (
   })?.[1] ?? 0;
 };
 
-/**
- * Bônus AZUL: valor do status do atributo (direto, sem modificador D&D)
- * Ex: FOR=15 → azul=15 (entra na soma total)
- */
-const calcAttrMod = (
-  skillCheck: string,
-  stats: Record<string, number>,
-): number => findStatValue(skillCheck, stats);
+const calcAttrMod = (skillCheck: string, stats: Record<string, number>): number => findStatValue(skillCheck, stats);
 
-/**
- * Bônus ROXO: soma dos bonus_value dos equipamentos que tenham
- * status_bonus batendo com o skillCheck.
- */
-const calcEquipBonus = (
-  skillCheck: string,
-  equipment: EquipmentItem[],
-): number => {
+const calcEquipBonus = (skillCheck: string, equipment: EquipmentItem[]): number => {
   if (!skillCheck || !equipment.length) return 0;
   const key = skillCheck.toLowerCase();
   return equipment.reduce((acc, eq) => {
@@ -209,13 +171,7 @@ const calcEquipBonus = (
   }, 0);
 };
 
-/**
- * Bônus de CLASSE: bônus fixo da classe no atributo do skillCheck.
- */
-const calcClassBonus = (
-  skillCheck: string,
-  className: string,
-): number => {
+const calcClassBonus = (skillCheck: string, className: string): number => {
   const bonuses = getClassBonuses(className);
   if (!bonuses || !skillCheck) return 0;
   const key = skillCheck.toLowerCase();
@@ -226,21 +182,7 @@ const calcClassBonus = (
   return found?.[1] ?? 0;
 };
 
-/**
- * Fórmula final:
- * dado + floor((status_base + bonus_azul_equip + bonus_roxo_arma) / 3) vs DC
- *
- * statusTotal = attrValue + equipBonus + classBonus
- * resultado   = roll + floor(statusTotal / divisor)
- * divisor: 3 para easy/normal/hard | 4 para impossible
- */
-const calcDiceBonus = (
-  skillCheck: string,
-  stats: Record<string, number>,
-  equipment: EquipmentItem[],
-  className: string,
-  difficulty: string,
-): { attrVal: number; equipBonus: number; classBonus: number; divisor: number; statusBonus: number } => {
+const calcDiceBonus = (skillCheck: string, stats: Record<string, number>, equipment: EquipmentItem[], className: string, difficulty: string) => {
   const attrVal = calcAttrMod(skillCheck, stats);
   const equipBonus = calcEquipBonus(skillCheck, equipment);
   const classBonus = calcClassBonus(skillCheck, className);
@@ -249,20 +191,9 @@ const calcDiceBonus = (
   return { attrVal, equipBonus, classBonus, divisor, statusBonus };
 };
 
-/**
- * Aplica a fórmula: dado + statusBonus
- */
-const applyDiceFormula = (
-  roll: number,
-  statusBonus: number,
-): number => roll + statusBonus;
+const applyDiceFormula = (roll: number, statusBonus: number): number => roll + statusBonus;
 
-
-// ─── BÔNUS DE CLASSE ──────────────────────────────────────────────────────────
-// Cada classe tem bônus fixos em 3 atributos e -1 em um.
-// Chaves devem bater com os nomes em stats (lowercase, sem acento).
 const CLASS_STAT_BONUSES: Record<string, Record<string, number>> = {
-  // ── D&D ──────────────────────────────────────────────────────────────────
   'Guerreiro': { forca: 3, constituicao: 2, destreza: 1, intelecto: -1 },
   'Mago': { intelecto: 3, sabedoria: 2, carisma: 1, forca: -1 },
   'Ladino': { destreza: 3, carisma: 2, intelecto: 1, forca: -1 },
@@ -271,8 +202,6 @@ const CLASS_STAT_BONUSES: Record<string, Record<string, number>> = {
   'Bardo': { carisma: 3, destreza: 2, intelecto: 1, forca: -1 },
   'Patrulheiro': { destreza: 3, sabedoria: 2, constituicao: 1, carisma: -1 },
   'Feiticeiro': { carisma: 3, intelecto: 2, sabedoria: 1, forca: -1 },
-
-  // ── Cyberpunk Red ─────────────────────────────────────────────────────────
   'Solo (Mercenário)': { reflexos: 3, corpo: 2, vontade: 1, empatia: -1 },
   'Netrunner (Hacker)': { intelecto: 3, reflexos: 2, tecnica: 1, corpo: -1 },
   'Techie (Engenheiro)': { tecnica: 3, intelecto: 2, vontade: 1, reflexos: -1 },
@@ -280,46 +209,17 @@ const CLASS_STAT_BONUSES: Record<string, Record<string, number>> = {
   'Nomad': { corpo: 3, vontade: 2, reflexos: 1, intelecto: -1 },
   'Medtech': { intelecto: 3, empatia: 2, tecnica: 1, reflexos: -1 },
   'Corpo': { carisma: 3, intelecto: 2, vontade: 1, corpo: -1 },
-
-  // ── Vampire: The Masquerade ───────────────────────────────────────────────
-  'Brujah (Rebelde)': { fisico: 3, vontade: 2, presenca: 1, mental: -1 },
-  'Toreador (Artista)': { social: 3, presenca: 2, destreza: 1, fisico: -1 },
-  'Ventrue (Líder)': { manipulacao: 3, social: 2, vontade: 1, fisico: -1 },
-  'Nosferatu (Espião)': { mental: 3, fisico: 2, presenca: 1, social: -1 },
-  'Malkavian (Profeta)': { mental: 3, presenca: 2, manipulacao: 1, fisico: -1 },
-  'Tremere (Feiticeiro)': { mental: 3, vontade: 2, manipulacao: 1, fisico: -1 },
-
-  // ── Fallout ───────────────────────────────────────────────────────────────
-  'Vault Dweller': { intelecto: 3, percepcao: 2, carisma: 1, forca: -1 },
-  'Brotherhood Initiate': { forca: 3, resistencia: 2, percepcao: 1, carisma: -1 },
-  'Wasteland Doctor': { intelecto: 3, percepcao: 2, empatia: 1, forca: -1 },
-  'Raider': { forca: 3, resistencia: 2, agilidade: 1, intelecto: -1 },
-  'Ghoul': { resistencia: 3, sorte: 2, percepcao: 1, carisma: -1 },
-  'Mercenary': { agilidade: 3, percepcao: 2, forca: 1, intelecto: -1 },
 };
 
-/**
- * Retorna os bônus de classe para um dado nome de classe.
- * Faz match por substring para tolerar variações menores.
- */
 const getClassBonuses = (className: string): Record<string, number> => {
   const exact = CLASS_STAT_BONUSES[className];
   if (exact) return exact;
-  // fallback: busca por substring
-  const key = Object.keys(CLASS_STAT_BONUSES).find(k =>
-    k.toLowerCase().includes(className.toLowerCase()) ||
-    className.toLowerCase().includes(k.toLowerCase())
-  );
+  const key = Object.keys(CLASS_STAT_BONUSES).find(k => k.toLowerCase().includes(className.toLowerCase()) || className.toLowerCase().includes(k.toLowerCase()));
   return key ? CLASS_STAT_BONUSES[key] : {};
 };
 
 // ─── TYPEWRITER ───────────────────────────────────────────────────────────────
-// ─── TYPEWRITER ───────────────────────────────────────────────────────────────
-const TypewriterMessage = ({
-  text, speed = 20, onComplete, onTick,
-}: {
-  text: string; speed?: number; onComplete?: () => void; onTick?: () => void;
-}) => {
+const TypewriterMessage = ({ text, speed = 20, onComplete, onTick }: { text: string; speed?: number; onComplete?: () => void; onTick?: () => void; }) => {
   const [charCount, setCharCount] = useState(0);
   const startTimeRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -349,7 +249,6 @@ const TypewriterMessage = ({
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, [text, speed]);
 
-  // ▼ ADICIONADO O REACTMARKDOWN AQUI ▼
   return (
     <div style={{ whiteSpace: 'pre-line' }}>
       <ReactMarkdown>{text.slice(0, charCount)}</ReactMarkdown>
@@ -361,8 +260,7 @@ const TypewriterMessage = ({
 const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }) => {
   const [show, setShow] = useState(false);
   return (
-    <div className={styles.tooltipContainer}
-      onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+    <div className={styles.tooltipContainer} onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
       {children}
       {show && text && <div className={styles.tooltip}>{text}</div>}
     </div>
@@ -380,12 +278,7 @@ const StatusBadge = ({ effect }: { effect: StatusEffect }) => {
 
   return (
     <Tooltip text={`${effect.label} (${effect.turns_remaining} turno(s)) • ${effect.source}`}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 4,
-        background: `${color}22`, border: `1px solid ${color}44`,
-        borderRadius: 6, padding: '4px 8px', fontSize: 10, color,
-        fontWeight: 700, cursor: 'default',
-      }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: `${color}22`, border: `1px solid ${color}44`, borderRadius: 6, padding: '4px 8px', fontSize: 10, color, fontWeight: 700, cursor: 'default' }}>
         <Zap size={10} />
         <span>{effect.label}</span>
         {parts.length > 0 && <span style={{ color: '#9ca3af' }}>({parts.join(' ')})</span>}
@@ -432,6 +325,7 @@ export default function MindRenderGame() {
   const [location, setLocation] = useState('');
   const [quests, setQuests] = useState<string[]>([]);
   const [statusFx, setStatusFx] = useState<StatusEffect[]>([]);
+  const [inCombat, setInCombat] = useState(false);
 
   const [uiState, setUiState] = useState({ stats: false, equipment: false, inventory: false, quests: true });
   const toggleUi = (key: keyof typeof uiState) => setUiState(p => ({ ...p, [key]: !p[key] }));
@@ -441,13 +335,18 @@ export default function MindRenderGame() {
   const [isRolling, setIsRolling] = useState(false);
   const [currentDiceType, setCurrentDiceType] = useState<DiceType>('d20');
   const [diceResult, setDiceResult] = useState<number | null>(null);
-  // diceBonus: bônus calculado do atributo para exibir no overlay
-  const [diceBonus, setDiceBonus] = useState<number>(0);            // azul — valor do stat
-  const [diceEquipBonus, setDiceEquipBonus] = useState<number>(0);  // roxo — equip
-  const [diceClassBonus, setDiceClassBonus] = useState<number>(0);  // verde — classe
+  const [diceBonus, setDiceBonus] = useState<number>(0);
+  const [diceEquipBonus, setDiceEquipBonus] = useState<number>(0);
+  const [diceClassBonus, setDiceClassBonus] = useState<number>(0);
   const [diceDivisor, setDiceDivisor] = useState<number>(3);
-  const [diceStatusBonus, setDiceStatusBonus] = useState<number>(0); // total após divisão
+  const [diceStatusBonus, setDiceStatusBonus] = useState<number>(0);
   const [currentChoice, setCurrentChoice] = useState<Choice | null>(null);
+
+  // ── ESTADOS DA FASE DE COMBATE (ATTACK CHOICES) ──
+  const [combatPhase, setCombatPhase] = useState<CombatPhase>('idle');
+  const [attackChoices, setAttackChoices] = useState<AttackChoice[]>([]);
+  const [attackChoicesRowId, setAttackChoicesRowId] = useState<string | null>(null);
+  const [isLoadingAttackChoices, setIsLoadingAttackChoices] = useState(false);
 
   const scrollToBottom = useCallback((smooth = true) => {
     if (!scrollRef.current) return;
@@ -491,6 +390,78 @@ export default function MindRenderGame() {
     processNextItem();
   }, [tryShowChoices, scrollToBottom]);
 
+  // ── HELPERS DE COMBATE ──
+  const getWeaponDice = useCallback((): DiceType => {
+    const weapon = equipment.find(e => e.slot === 'main_hand');
+    const diceStr = weapon?.stats?.damage_dice || weapon?.stats?.damage || '1d4';
+    const match = diceStr.match(/d(\d+)/);
+    if (match) {
+      const sides = parseInt(match[1]);
+      const valid: DiceType[] = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'];
+      const found = valid.find(d => d === `d${sides}`);
+      return found || 'd6';
+    }
+    return 'd6';
+  }, [equipment]);
+
+  const getWeaponDiceCount = useCallback((): number => {
+    const weapon = equipment.find(e => e.slot === 'main_hand');
+    const diceStr = weapon?.stats?.damage_dice || weapon?.stats?.damage || '1d4';
+    const match = diceStr.match(/^(\d+)d/);
+    return match ? parseInt(match[1]) : 1;
+  }, [equipment]);
+
+  const mapRowToAttackChoices = useCallback((row: AttackChoicesRow): AttackChoice[] => {
+    const weapon = equipment.find(e => e.slot === 'main_hand');
+    const primaryAttr = row.primary_attr || weapon?.stats?.status_bonus || 'FOR';
+    return (row.choices || []).map(c => {
+      const sideMatch = c.damage_dice.match(/d(\d+)/);
+      const sides = sideMatch ? parseInt(sideMatch[1]) : 6;
+      return {
+        id: c.id,
+        text: c.text,
+        flavor: c.flavor,
+        damageDice: `d${sides}` as DiceType,
+        damageAttr: c.damage_attr || primaryAttr,
+        damageBonus: c.damage_bonus ?? 0,
+      };
+    });
+  }, [equipment]);
+
+  const fetchAttackChoicesWithRetry = useCallback(async (storyId: string, attempt = 0) => {
+    if (!isMountedRef.current || attempt >= 10) {
+      setIsLoadingAttackChoices(false);
+      // Fallback seguro caso o n8n demore muito
+      const dt = getWeaponDice();
+      setAttackChoices([
+        { id: 'atk_1', text: 'Ataque Rápido', flavor: 'Direto', damageDice: dt, damageAttr: 'FOR', damageBonus: 0 },
+        { id: 'atk_2', text: 'Golpe Pesado', flavor: 'Poderoso', damageDice: dt, damageAttr: 'FOR', damageBonus: 2 },
+        { id: 'atk_3', text: 'Ataque Preciso', flavor: 'Estratégico', damageDice: dt, damageAttr: 'FOR', damageBonus: -1 },
+      ]);
+      setCombatPhase('awaiting_attack_choice');
+      return;
+    }
+
+    const { data } = await supabase
+      .from('attack_choices')
+      .select('*')
+      .eq('story_id', storyId)
+      .eq('is_used', false)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (data && data.length > 0) {
+      const row = data[0] as AttackChoicesRow;
+      setAttackChoicesRowId(row.id);
+      setAttackChoices(mapRowToAttackChoices(row));
+      setIsLoadingAttackChoices(false);
+      setCombatPhase('awaiting_attack_choice');
+      setTimeout(() => scrollToBottom(true), 200);
+    } else {
+      setTimeout(() => fetchAttackChoicesWithRetry(storyId, attempt + 1), 1500);
+    }
+  }, [getWeaponDice, mapRowToAttackChoices, scrollToBottom]);
+
   const fetchChoicesWithRetry = useCallback(async (storyId: string, attempt = 0) => {
     if (!isMountedRef.current || attempt >= 8) return;
     const { data } = await supabase.from('choices').select('*').eq('story_id', storyId).eq('is_chosen', false);
@@ -498,7 +469,7 @@ export default function MindRenderGame() {
       choicesReadyRef.current = true;
       setChoices(data.map((c: any) => ({
         id: c.id, text: c.text, type: c.type,
-        skillCheck: c.skill_check, difficulty: c.difficulty, diceType: c.dice_type,
+        skillCheck: c.skill_check, difficulty: c.difficulty, diceType: c.dice_type, is_attack: c.is_attack
       })));
       tryShowChoices();
     } else {
@@ -534,8 +505,8 @@ export default function MindRenderGame() {
         if (storyError || !story) throw storyError;
         if (story.user_id !== user.id) { setAccessDenied(true); setLoading(false); return; }
 
-        // Salva dificuldade para cálculo de bônus de dado
         setDifficulty(story.difficulty ?? 'normal');
+        setInCombat(story.in_combat ?? false);
 
         const { data: equipData } = await supabase.from('equipment').select('*').eq('story_id', storyId);
         setEquipment(equipData ?? []);
@@ -573,7 +544,7 @@ export default function MindRenderGame() {
               choicesReadyRef.current = true;
               setChoices(choicesData.map((c: any) => ({
                 id: c.id, text: c.text, type: c.type,
-                skillCheck: c.skill_check, difficulty: c.difficulty, diceType: c.dice_type,
+                skillCheck: c.skill_check, difficulty: c.difficulty, diceType: c.dice_type, is_attack: c.is_attack
               })));
               setShowChoices(true);
             }
@@ -651,6 +622,7 @@ export default function MindRenderGame() {
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'stories', filter: `id=eq.${storyId}` }, async (payload) => {
           if (!alive) return;
           const s = payload.new as any;
+          setInCombat(s.in_combat ?? false);
           setCharacter(prev => prev ? ({
             ...prev,
             hp: s.hp_current ?? prev.hp, maxHp: s.hp_max ?? prev.maxHp,
@@ -684,6 +656,17 @@ export default function MindRenderGame() {
           const { data } = await supabase.from('equipment').select('*').eq('story_id', storyId);
           setEquipment(data ?? []);
         })
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'attack_choices', filter: `story_id=eq.${storyId}` }, (payload) => {
+          if (!alive) return;
+          const row = payload.new as AttackChoicesRow;
+          if (!row.is_used) {
+            setAttackChoicesRowId(row.id);
+            setAttackChoices(mapRowToAttackChoices(row));
+            setIsLoadingAttackChoices(false);
+            setCombatPhase('awaiting_attack_choice');
+            setTimeout(() => scrollToBottom(true), 200);
+          }
+        })
         .subscribe((status) => {
           if ((status === 'TIMED_OUT' || status === 'CLOSED' || status === 'CHANNEL_ERROR') && alive) {
             setTimeout(() => { if (alive) connectRealtime(); }, 3000);
@@ -707,7 +690,7 @@ export default function MindRenderGame() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (channelRef.current) { supabase.removeChannel(channelRef.current); channelRef.current = null; }
     };
-  }, [params.id, fetchChoicesWithRetry, playItemSequence]);
+  }, [params.id, fetchChoicesWithRetry, playItemSequence, mapRowToAttackChoices, scrollToBottom]);
 
   useEffect(() => {
     if (!loading && messages.length > 0) setTimeout(() => scrollToBottom(false), 100);
@@ -735,6 +718,7 @@ export default function MindRenderGame() {
     setMessages(p => [...p, { id: nextId(), sender: 'system', text: `🧪 Recuperou ${heal} HP com ${item.name}.` }]);
   };
 
+  // ── ESCOLHA NORMAL DO TURNO ───────────────────────────────────────────────
   const handleChoice = async (choice: Choice) => {
     if (isProcessing) return;
     setIsProcessing(true);
@@ -747,6 +731,7 @@ export default function MindRenderGame() {
     pendingItemsRef.current = [];
 
     let rollValue: number | null = null;
+    let isSuccess = false;
 
     if (choice.skillCheck && choice.diceType) {
       const max = parseInt(choice.diceType.substring(1));
@@ -755,14 +740,15 @@ export default function MindRenderGame() {
       const { attrVal, equipBonus, classBonus, divisor, statusBonus } =
         calcDiceBonus(choice.skillCheck, stats, equipment, character?.class ?? '', difficulty);
       rollValue = applyDiceFormula(rawRoll, statusBonus);
+      isSuccess = rollValue >= (choice.difficulty ?? 0);
 
       setCurrentChoice(choice);
       setCurrentDiceType(choice.diceType);
-      setDiceBonus(attrVal);           // azul — valor do stat
-      setDiceEquipBonus(equipBonus);   // roxo — bônus do equip
-      setDiceClassBonus(classBonus);   // verde — bônus da classe
+      setDiceBonus(attrVal);
+      setDiceEquipBonus(equipBonus);
+      setDiceClassBonus(classBonus);
       setDiceDivisor(divisor);
-      setDiceStatusBonus(statusBonus); // total já calculado
+      setDiceStatusBonus(statusBonus);
       setDiceResult(null);
       setIsRolling(true);
       setShowDiceOverlay(true);
@@ -796,15 +782,114 @@ export default function MindRenderGame() {
         : '';
       setMessages(p => [...p, {
         id: nextId(), sender: 'system',
-        text: `🎲 ${rawRoll}${breakdownStr} = ${rollValue} vs DC ${choice.difficulty ?? '?'} — ${rollValue >= (choice.difficulty ?? 0) ? '✅ Sucesso' : '❌ Falha'}`,
+        text: `🎲 ${rawRoll}${breakdownStr} = ${rollValue} vs DC ${choice.difficulty ?? '?'} — ${isSuccess ? '✅ Sucesso' : '❌ Falha'}`,
       }]);
     }
+
+    // ── GATILHO PARA OPÇÕES DE ATAQUE (SE ACERTOU) ──
+    const isCombatHit = rollValue !== null && isSuccess && (choice.is_attack || (inCombat && choice.type === 'action'));
+
+    if (isCombatHit) {
+      const storyId = Array.isArray(params.id) ? params.id[0] : params.id as string;
+      setIsLoadingAttackChoices(true);
+      setIsProcessing(false); // Libera processamento principal pois agora aguardamos o sub-estado
+
+      // Chama a rota de geração do n8n para ataques e inicia o polling
+      fetch('/api/game/attack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ story_id: storyId }),
+      }).catch(err => console.error('attack trigger error:', err));
+
+      fetchAttackChoicesWithRetry(storyId);
+      return;
+    }
+
+    // ── FLUXO NORMAL DE NARRATIVA ──
+    await supabase.from('choices').update({ is_chosen: true }).eq('story_id', params.id);
+
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    abortControllerRef.current = new AbortController();
+
+    fetch('/api/game/continue', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      signal: abortControllerRef.current.signal, keepalive: true,
+      body: JSON.stringify({ story_id: params.id }),
+    }).catch(err => {
+      if (err?.name === 'AbortError') return;
+      console.error('Erro ao chamar continue:', err);
+      setIsProcessing(false);
+    });
+
+    await checkAndTriggerResume(Array.isArray(params.id) ? params.id[0] : params.id as string);
+  };
+
+  // ── ESCOLHA DE OPÇÃO DE ATAQUE ────────────────────────────────────────────
+  const handleAttackChoice = async (atk: AttackChoice) => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    setAttackChoices([]);
+    setCombatPhase('rolling_damage');
+
+    // Lógica do dado de dano
+    const attrRawVal = calcAttrMod(atk.damageAttr, stats);
+    const attrDmgVal = Math.floor(attrRawVal / 4);
+    const diceCount = getWeaponDiceCount();
+    const diceSides = parseInt(atk.damageDice.substring(1));
+
+    let diceOnlyTotal = 0;
+    for (let i = 0; i < diceCount; i++) {
+      diceOnlyTotal += Math.floor(Math.random() * diceSides) + 1;
+    }
+    const totalDamage = Math.max(1, diceOnlyTotal + atk.damageBonus + attrDmgVal);
+
+    // Overlay visual do dado de dano
+    setCurrentDiceType(atk.damageDice);
+    setDiceBonus(attrDmgVal);
+    setDiceEquipBonus(0);
+    setDiceClassBonus(atk.damageBonus);
+    setDiceDivisor(1);
+    setDiceStatusBonus(attrDmgVal + atk.damageBonus);
+    setDiceResult(null);
+    setIsRolling(true);
+    setShowDiceOverlay(true);
+
+    await new Promise(resolve => setTimeout(resolve, 1400));
+    setDiceResult(diceOnlyTotal);
+    setIsRolling(false);
+
+    // Mensagem do Sistema
+    const diceCountStr = diceCount > 1 ? `${diceCount}${atk.damageDice}` : atk.damageDice;
+    const bonusParts: string[] = [];
+    if (atk.damageBonus !== 0) bonusParts.push(`${atk.damageBonus > 0 ? '+' : ''}${atk.damageBonus}`);
+    if (attrDmgVal !== 0) bonusParts.push(`+${attrDmgVal}${atk.damageAttr}(/4)`);
+    const breakdownStr = bonusParts.length ? ` ${bonusParts.join(' ')}` : '';
+    setMessages(p => [...p, {
+      id: nextId(), sender: 'system',
+      text: `⚔️ Dano: ${diceCountStr}${breakdownStr} = **${totalDamage}**`,
+    }]);
+
+    if (attackChoicesRowId) {
+      await supabase.from('attack_choices').update({ is_used: true, chosen_id: atk.id }).eq('id', attackChoicesRowId);
+    }
+
+    // Insere o dano rolado na mensagem do player para o LLM narrar o impacto
+    await supabase.from('messages').insert({
+      story_id: params.id,
+      sender: 'player',
+      content: `${atk.text} [DANO:${totalDamage}]`,
+      roll_result: totalDamage,
+    });
+
+    setCombatPhase('idle');
+    setAttackChoicesRowId(null);
 
     await supabase.from('choices').update({ is_chosen: true }).eq('story_id', params.id);
 
     if (abortControllerRef.current) abortControllerRef.current.abort();
     abortControllerRef.current = new AbortController();
 
+    // Enfim, chama a continuação para o Narrador processar a morte ou revide
     fetch('/api/game/continue', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       signal: abortControllerRef.current.signal, keepalive: true,
@@ -837,6 +922,47 @@ export default function MindRenderGame() {
   if (loading || !character) return (
     <div className={styles.centered}><Loader2 className="spin" size={48} /></div>
   );
+
+  // ▼ NOVA TELA DE GAME OVER AQUI ▼
+  if (character.hp <= 0) {
+    return (
+      <div className={styles.centered} style={{
+        flexDirection: 'column', gap: 24,
+        background: 'radial-gradient(ellipse at center, #2a0000 0%, #000 70%)',
+        minHeight: '100vh', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 9999
+      }}>
+        <div style={{
+          fontSize: 100, animation: 'pulse 2s infinite',
+          filter: 'drop-shadow(0 0 30px #ef4444)', marginBottom: -20
+        }}>💀</div>
+        <h1 style={{
+          fontSize: 56, fontWeight: 900, color: '#ef4444', letterSpacing: 6,
+          textShadow: '0 0 40px #ef444488, 0 0 80px #ef444444',
+          fontFamily: 'monospace', textTransform: 'uppercase', textAlign: 'center'
+        }}>GAME OVER</h1>
+        <p style={{ color: '#9ca3af', fontSize: 18, letterSpacing: 2, textAlign: 'center' }}>
+          {character.name} caiu em batalha. O mundo foi consumido pelas sombras.
+        </p>
+        <button
+          onClick={() => router.push('/home')}
+          style={{
+            marginTop: 20, padding: '16px 48px',
+            background: 'rgba(239,68,68,0.1)', border: '1px solid #ef4444',
+            color: '#ef4444', borderRadius: 12, fontSize: 16,
+            fontWeight: 700, letterSpacing: 3, cursor: 'pointer',
+            textTransform: 'uppercase', transition: 'all 0.2s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.3)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
+        >
+          Voltar para o Início
+        </button>
+        <style>{`@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }`}</style>
+      </div>
+    );
+  }
+  // ▲ FIM DA TELA DE GAME OVER ▲
+
   if (messages.length === 0) {
     return (
       <div className={styles.centered} style={{ flexDirection: 'column', gap: 20 }}>
@@ -884,7 +1010,7 @@ export default function MindRenderGame() {
           )}
         </div>
 
-        <div className={`${styles.contentSplit} ${showChoices ? styles.splitMode : styles.fullMode}`}>
+        <div className={`${styles.contentSplit} ${(showChoices || combatPhase === 'awaiting_attack_choice') ? styles.splitMode : styles.fullMode}`}>
           <div className={styles.logContainer} ref={scrollRef}>
             {messages.map((msg) => {
               const shouldType = msg.id === pendingNarratorId && msg.sender === 'narrator';
@@ -901,7 +1027,6 @@ export default function MindRenderGame() {
                       onTick={() => scrollToBottom(true)}
                       onComplete={() => handleTypingComplete(msg.id)} />
                   ) : (
-                    // ▼ ADICIONADO O REACTMARKDOWN AQUI ▼
                     <div style={{ whiteSpace: 'pre-line' }}>
                       <ReactMarkdown>{msg.text}</ReactMarkdown>
                     </div>
@@ -922,9 +1047,53 @@ export default function MindRenderGame() {
                 Recebendo recompensas...
               </div>
             )}
+            {isLoadingAttackChoices && (
+              <div className={styles.msgSystem} style={{ opacity: 0.8, color: '#ef4444' }}>
+                <Loader2 size={12} className="spin" style={{ marginRight: 6 }} />
+                Gerando opções de ataque...
+              </div>
+            )}
           </div>
 
-          {showChoices && !isProcessing && (
+          {/* ── FASE DE COMBATE: ESCOLHA DO GOLPE ───────────────────────── */}
+          {combatPhase === 'awaiting_attack_choice' && !isProcessing && (
+            <div className={styles.optionsArea}>
+              <div className={styles.choicesScrollContainer}>
+                <div style={{
+                  padding: '8px 12px', marginBottom: 8,
+                  background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+                  borderRadius: 8, color: '#ef4444', fontSize: 11, fontWeight: 700,
+                  letterSpacing: 1, textTransform: 'uppercase', textAlign: 'center',
+                }}>
+                  ⚔️ Acertou! Como vai atacar?
+                </div>
+                {attackChoices.length === 0 && (
+                  <div style={{ textAlign: 'center', color: '#6b7280', fontSize: 12, padding: '16px 0' }}>
+                    <span style={{ marginRight: 6 }}>⚔️</span>Gerando opções de ataque...
+                  </div>
+                )}
+                {attackChoices.map(atk => (
+                  <button key={atk.id} className={styles.optionBtn}
+                    onClick={() => handleAttackChoice(atk)}
+                    disabled={showDiceOverlay}
+                    data-type="action">
+                    <div className={styles.optionIcon}>⚔️</div>
+                    <div className={styles.optionContent}>
+                      <span className={styles.optionText}>{atk.text}</span>
+                      <span className={styles.optionMeta}>{atk.flavor}</span>
+                    </div>
+                    <div className={styles.rollBadge} style={{ background: 'rgba(239,68,68,0.15)', borderColor: 'rgba(239,68,68,0.4)' }}>
+                      <span style={{ color: '#ef4444', fontWeight: 800 }}>{atk.damageDice}</span>
+                      <span style={{ color: '#f97316' }}>+{atk.damageAttr}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── FASE NORMAL: ESCOLHA DA AÇÃO ────────────────────────────── */}
+          {showChoices && !isProcessing && combatPhase === 'idle' && (
             <div className={styles.optionsArea}>
               <div className={styles.choicesScrollContainer}>
                 {choices.map(choice => {
@@ -932,7 +1101,6 @@ export default function MindRenderGame() {
                     : choice.type === 'social' ? MessageSquare
                       : choice.type === 'stealth' ? Footprints : Swords;
 
-                  // Preview de bônus na choice card
                   const previewAttr = choice.skillCheck ? calcAttrMod(choice.skillCheck, stats) : 0;
                   const previewEquip = choice.skillCheck ? calcEquipBonus(choice.skillCheck, equipment) : 0;
                   const previewClass = choice.skillCheck ? calcClassBonus(choice.skillCheck, character?.class ?? '') : 0;
@@ -1062,9 +1230,6 @@ export default function MindRenderGame() {
               <div className={styles.sectionBody}>
                 <div className={styles.statsGrid}>
                   {Object.entries(stats).map(([k, v]) => {
-                    const mod = Math.floor(((v as number) - 10) / 2);
-
-                    // Bônus roxo — equipamentos
                     const eqBonus = equipment.reduce((acc, eq) => {
                       const s = eq.stats ?? {};
                       const sb = (s.status_bonus ?? '').toLowerCase();
@@ -1075,7 +1240,6 @@ export default function MindRenderGame() {
                       return acc;
                     }, 0);
 
-                    // Bônus verde — classe
                     const clsBonus = character ? calcClassBonus(k, character.class) : 0;
 
                     return (
@@ -1122,7 +1286,6 @@ export default function MindRenderGame() {
                             <span className={styles.itemName}>{item.name}</span>
                             <span style={{ color: 'var(--neon-cyan)', fontSize: 9, textTransform: 'uppercase' }}>{item.slot}</span>
                           </div>
-                          {/* Stats renderizados com cores e ícones */}
                           <div className={styles.itemSub}>
                             {renderEquipmentStats(item)}
                           </div>
