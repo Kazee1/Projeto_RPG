@@ -160,6 +160,3 @@ Projeto_RPG/
 
 ---
 
-## 📄 Licença
-
-Licença não definida. Sugestão: MIT.
